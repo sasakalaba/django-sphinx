@@ -30,6 +30,7 @@ default settings.py values
     SPHINX_PORT = 3312
 </code>
 """
+from __future__ import absolute_import
 import warnings
 import os.path
 

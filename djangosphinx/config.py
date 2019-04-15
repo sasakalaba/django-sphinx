@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import, print_function
 import os, sys, os.path, warnings
 
 # Add the project to the python path
@@ -53,4 +54,4 @@ else:
         'DATABASE_NAME': settings.DATABASE_NAME,
     })
 
-print render_to_string(getattr(settings, 'SPHINX_CONFIG_TEMPLATE', 'conf/sphinx.conf'), context)
+print(render_to_string(getattr(settings, 'SPHINX_CONFIG_TEMPLATE', 'conf/sphinx.conf'), context))

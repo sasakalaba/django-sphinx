@@ -13,11 +13,14 @@
 # did not, you can find it at http://www.gnu.org/
 #
 
+from __future__ import absolute_import
 import sys
 import select
 import socket
 import re
 from struct import *
+import six
+from six.moves import range
 
 
 # known searchd commands
@@ -75,7 +78,7 @@ SPH_ATTR_ORDINAL		= 3
 SPH_ATTR_BOOL			= 4
 SPH_ATTR_FLOAT			= 5
 SPH_ATTR_BIGINT			= 6
-SPH_ATTR_MULTI			= 0X40000000L
+SPH_ATTR_MULTI			= 0X40000000
 
 SPH_ATTR_TYPES = (SPH_ATTR_NONE,
 				  SPH_ATTR_INTEGER,
@@ -196,7 +199,7 @@ class SphinxClient:
 				desc = '%s;%s' % addr
 			sock = socket.socket ( af, socket.SOCK_STREAM )
 			sock.connect ( addr )
-		except socket.error, msg:
+		except socket.error as msg:
 			if sock:
 				sock.close()
 			self._error = 'connection to %s failed (%s)' % ( desc, msg )
@@ -271,8 +274,8 @@ class SphinxClient:
 		"""
 		Set offset and count into result set, and optionally set max-matches and cutoff limits.
 		"""
-		assert ( type(offset) in [int,long] and 0<=offset<16777216 )
-		assert ( type(limit) in [int,long] and 0<limit<16777216 )
+		assert ( type(offset) in [int,int] and 0<=offset<16777216 )
+		assert ( type(limit) in [int,int] and 0<limit<16777216 )
 		assert(maxmatches>=0)
 		self._offset = offset
 		self._limit = limit
@@ -354,8 +357,8 @@ class SphinxClient:
 		Set IDs range to match.
 		Only match records if document ID is beetwen $min and $max (inclusive).
 		"""
-		assert(isinstance(minid, (int, long)))
-		assert(isinstance(maxid, (int, long)))
+		assert(isinstance(minid, six.integer_types))
+		assert(isinstance(maxid, six.integer_types))
 		assert(minid<=maxid)
 		self._min_id = minid
 		self._max_id = maxid
@@ -370,7 +373,7 @@ class SphinxClient:
 		assert iter(values)
 
 		for value in values:
-			assert(isinstance(value, (int, long)))
+			assert(isinstance(value, six.integer_types))
 
 		self._filters.append ( { 'type':SPH_FILTER_VALUES, 'attr':attribute, 'exclude':exclude, 'values':values } )
 
@@ -493,7 +496,7 @@ class SphinxClient:
 		req.append(pack('>L', len(self._sortby)))
 		req.append(self._sortby)
 
-		if isinstance(query,unicode):
+		if isinstance(query,six.text_type):
 			query = query.encode('utf-8')
 		assert(isinstance(query,str))
 
@@ -566,7 +569,7 @@ class SphinxClient:
 		for v in self._overrides.values():
 			req.extend ( ( pack('>L', len(v['name'])), v['name'] ) )
 			req.append ( pack('>LL', v['type'], len(v['values'])) )
-			for id, value in v['values'].iteritems():
+			for id, value in six.iteritems(v['values']):
 				req.append ( pack('>Q', id) )
 				if v['type'] == SPH_ATTR_FLOAT:
 					req.append ( pack('>f', value) )
@@ -730,7 +733,7 @@ class SphinxClient:
 		"""
 		if not opts:
 			opts = {}
-		if isinstance(words,unicode):
+		if isinstance(words,six.text_type):
 			words = words.encode('utf-8')
 
 		assert(isinstance(docs, list))
@@ -786,7 +789,7 @@ class SphinxClient:
 		# documents
 		req.append(pack('>L', len(docs)))
 		for doc in docs:
-			if isinstance(doc,unicode):
+			if isinstance(doc,six.text_type):
 				doc = doc.encode('utf-8')
 			assert(isinstance(doc, str))
 			req.append(pack('>L', len(doc)))

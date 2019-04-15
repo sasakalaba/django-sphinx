@@ -13,10 +13,13 @@
 # did not, you can find it at http://www.gnu.org/
 #
 
+from __future__ import absolute_import
 import sys
 import select
 import socket
 from struct import *
+import six
+from six.moves import range
 
 
 # known searchd commands
@@ -72,7 +75,7 @@ SPH_ATTR_TIMESTAMP		= 2
 SPH_ATTR_ORDINAL		= 3
 SPH_ATTR_BOOL			= 4
 SPH_ATTR_FLOAT			= 5
-SPH_ATTR_MULTI			= 0X40000000L
+SPH_ATTR_MULTI			= 0X40000000
 
 # known grouping functions
 SPH_GROUPBY_DAY	 		= 0
@@ -148,7 +151,7 @@ class SphinxClient:
 		try:
 			sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
 			sock.connect ( ( self._host, self._port ) )
-		except socket.error, msg:
+		except socket.error as msg:
 			if sock:
 				sock.close()
 			self._error = 'connection to %s:%s failed (%s)' % ( self._host, self._port, msg )
@@ -322,7 +325,7 @@ class SphinxClient:
 		assert(values)
 
 		for value in values:
-			assert(isinstance(value, (int, long)))
+			assert(isinstance(value, six.integer_types))
 
 		self._filters.append ( { 'type':SPH_FILTER_VALUES, 'attr':attribute, 'exclude':exclude, 'values':values } )
 
@@ -429,7 +432,7 @@ class SphinxClient:
 		req.append(pack('>L', len(self._sortby)))
 		req.append(self._sortby)
 
-		if isinstance(query,unicode):
+		if isinstance(query,six.text_type):
 			query = query.encode('utf-8')
 		assert(isinstance(query,str))
 
@@ -647,7 +650,7 @@ class SphinxClient:
 		"""
 		if not opts:
 			opts = {}
-		if isinstance(words,unicode):
+		if isinstance(words,six.text_type):
 			words = words.encode('utf-8')
 
 		assert(isinstance(docs, list))
@@ -697,7 +700,7 @@ class SphinxClient:
 		# documents
 		req.append(pack('>L', len(docs)))
 		for doc in docs:
-			if isinstance(doc,unicode):
+			if isinstance(doc,six.text_type):
 				doc = doc.encode('utf-8')
 			assert(isinstance(doc, str))
 			req.append(pack('>L', len(doc)))
