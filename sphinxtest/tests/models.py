@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from builtins import object
 from django.db import models
 
 from djangosphinx import SphinxSearch
@@ -16,5 +17,5 @@ class Document(models.Model):
     
     search      = SphinxSearch(index="test")
     
-    class Meta:
+    class Meta(object):
         db_table = 'documents'
