@@ -1,4 +1,11 @@
 from __future__ import absolute_import
+from past.builtins import cmp
+from builtins import hex
+from builtins import oct
+from builtins import str
+from builtins import map
+from builtins import range
+from builtins import object
 import select
 import socket
 import time
@@ -85,7 +92,7 @@ class SphinxProxy(object):
             return '<%s unbound>' % self.__class__.__name__
         return repr(obj)
 
-    def __nonzero__(self):
+    def __bool__(self):
         try:
             return bool(self._current_object)
         except RuntimeError:
@@ -248,7 +255,7 @@ class SphinxQuerySet(object):
         return iter(self._get_data())
     
     def __getitem__(self, k):
-        if not isinstance(k, (slice, int, int)):
+        if not isinstance(k, (slice, int)):
             raise TypeError
         assert (not isinstance(k, slice) and (k >= 0)) \
             or (isinstance(k, slice) and (k.start is None or k.start >= 0) and (k.stop is None or k.stop >= 0)), \

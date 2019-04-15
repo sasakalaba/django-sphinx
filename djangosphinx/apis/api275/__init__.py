@@ -14,6 +14,8 @@
 #
 
 from __future__ import absolute_import
+from builtins import range
+from builtins import object
 import sys
 import select
 import socket
@@ -85,7 +87,7 @@ SPH_GROUPBY_YEAR		= 3
 SPH_GROUPBY_ATTR		= 4
 
 
-class SphinxClient:
+class SphinxClient(object):
 	def __init__ (self):
 		"""
 		Create a new client object, and fill defaults.
@@ -286,7 +288,7 @@ class SphinxClient:
 		Bind per-field weights by name; expects (name,field_weight) dictionary as argument.
 		"""
 		assert(isinstance(weights,dict))
-		for key,val in weights.items():
+		for key,val in list(weights.items()):
 			assert(isinstance(key,str))
 			assert(isinstance(val,int))
 		self._fieldweights = weights
@@ -297,7 +299,7 @@ class SphinxClient:
 		Bind per-index weights by name; expects (name,index_weight) dictionary as argument.
 		"""
 		assert(isinstance(weights,dict))
-		for key,val in weights.items():
+		for key,val in list(weights.items()):
 			assert(isinstance(key,str))
 			assert(isinstance(val,int))
 		self._indexweights = weights
@@ -486,7 +488,7 @@ class SphinxClient:
 
 		# per-index weights
 		req.append ( pack ('>L',len(self._indexweights)))
-		for indx,weight in self._indexweights.items():
+		for indx,weight in list(self._indexweights.items()):
 			req.append ( pack ('>L',len(indx)) + indx + pack ('>L',weight))
 
 		# max query time
@@ -494,7 +496,7 @@ class SphinxClient:
 
 		# per-field weights
 		req.append ( pack ('>L',len(self._fieldweights) ) )
-		for field,weight in self._fieldweights.items():
+		for field,weight in list(self._fieldweights.items()):
 			req.append ( pack ('>L',len(field)) + field + pack ('>L',weight) )
 
 		# comment
@@ -754,7 +756,7 @@ class SphinxClient:
 		assert ( isinstance ( values, dict ) )
 		for attr in attrs:
 			assert ( isinstance ( attr, str ) )
-		for docid, entry in values.items():
+		for docid, entry in list(values.items()):
 			assert ( isinstance ( docid, int ) )
 			assert ( isinstance ( entry, list ) )
 			assert ( len(attrs)==len(entry) )
@@ -769,7 +771,7 @@ class SphinxClient:
 			req.append ( pack('>L',len(attr)) + attr )
 
 		req.append ( pack('>L',len(values)) )
-		for docid, entry in values.items():
+		for docid, entry in list(values.items()):
 			req.append ( pack('>q',docid) )
 			for val in entry:
 				req.append ( pack('>L',val) )

@@ -14,6 +14,9 @@
 #
 
 from __future__ import absolute_import
+from builtins import map
+from builtins import range
+from builtins import object
 import select
 import socket
 from struct import *
@@ -59,7 +62,7 @@ SPH_GROUPBY_MONTH		= 2
 SPH_GROUPBY_YEAR		= 3
 SPH_GROUPBY_ATTR		= 4
 
-class SphinxClient:
+class SphinxClient(object):
 	_host		= 'localhost'			# searchd host (default is "localhost")
 	_port		= 3312					# searchd port (default is 3312)
 	_offset		= 0						# how much records to seek from result-set start (default is 0)
