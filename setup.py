@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
 from setuptools import setup, find_packages
 
 import djangosphinx
+from six.moves import map
 
 setup(
     name='django-sphinx',

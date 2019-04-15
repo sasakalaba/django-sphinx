@@ -13,9 +13,11 @@
 # did not, you can find it at http://www.gnu.org/
 #
 
+from __future__ import absolute_import
 import select
 import socket
 from struct import *
+from six.moves import map, range
 
 
 # known searchd commands
@@ -116,7 +118,7 @@ class SphinxClient:
 		try:
 			sock = socket.socket ( socket.AF_INET, socket.SOCK_STREAM )
 			sock.connect ( ( self._host, self._port ) )
-		except socket.error, msg:
+		except socket.error as msg:
 			if sock:
 				sock.close()
 			self._error = 'connection to %s:%s failed (%s)' % ( self._host, self._port, msg )
@@ -250,7 +252,7 @@ class SphinxClient:
 		assert(isinstance(values, list))
 		assert(values)
 
-		values = map(int, values)
+		values = list(map(int, values))
 
 		self._filters.append ( { 'attr':attribute, 'exclude':exclude, 'values':values } )
 

@@ -1,3 +1,4 @@
+from __future__ import absolute_import, print_function
 from django.core.management.base import AppCommand
 from django.db import models
 
@@ -16,7 +17,7 @@ class Command(AppCommand):
             indexes = getattr(model, '__sphinx_indexes__', [])
             for index in indexes:
                 found += 1
-                print generate_config_for_model(model, index)
+                print(generate_config_for_model(model, index))
         if found == 0:
-            print "Unable to find any models in application which use standard SphinxSearch configuration."
+            print("Unable to find any models in application which use standard SphinxSearch configuration.")
         #return u'\n'.join(sql_create(app, self.style)).encode('utf-8')
