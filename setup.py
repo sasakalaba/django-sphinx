@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 
 from __future__ import absolute_import
-from builtins import map
 from setuptools import setup, find_packages
 
 import djangosphinx
 
 setup(
     name='django-sphinx',
-    version=".".join(map(str, djangosphinx.__version__)),
+    version=".".join((str(ch) for ch in djangosphinx.__version__)),
     author='David Cramer',
     author_email='dcramer@gmail.com',
     url='http://github.com/dcramer/django-sphinx',
