@@ -1,11 +1,6 @@
 from __future__ import absolute_import
 from past.builtins import cmp
-from builtins import hex
-from builtins import oct
-from builtins import str
-from builtins import map
-from builtins import range
-from builtins import object
+from builtins import hex, oct, str, map, range, object
 import select
 import socket
 import time
@@ -16,8 +11,6 @@ from djangosphinx.apis import current as sphinxapi
 import logging
 import re
 import six
-from six.moves import map
-from six.moves import range
 from functools import reduce
 try:
     import decimal

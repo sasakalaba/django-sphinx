@@ -14,14 +14,12 @@
 #
 
 from __future__ import absolute_import
-from builtins import range
-from builtins import object
+from builtins import range, object
 import sys
 import select
 import socket
 from struct import *
 import six
-from six.moves import range
 
 
 # known searchd commands

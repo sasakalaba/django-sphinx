@@ -14,13 +14,10 @@
 #
 
 from __future__ import absolute_import
-from builtins import map
-from builtins import range
-from builtins import object
+from builtins import map, range, object
 import select
 import socket
 from struct import *
-from six.moves import map, range
 
 
 # known searchd commands
