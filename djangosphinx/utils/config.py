@@ -11,12 +11,14 @@ import djangosphinx.apis.current as sphinxapi
 
 __all__ = ('generate_config_for_model', 'generate_config_for_models')
 
+
 def _get_database_engine():
     if settings.DATABASE_ENGINE == 'mysql':
         return settings.DATABASE_ENGINE
     elif settings.DATABASE_ENGINE.startswith('postgresql'):
         return 'pgsql'
     raise ValueError("Only MySQL and PostgreSQL engines are supported by Sphinx.")
+
 
 def _get_template(name):
     paths = (
@@ -35,6 +37,7 @@ def _get_template(name):
             fp.close()
     raise ValueError("Template matching name does not exist: %s." % (name,))
 
+
 def _is_sourcable_field(field):
     # We can use float fields in 0.98
     if sphinxapi.VER_COMMAND_SEARCH >= 0x113 and (isinstance(field, models.FloatField) or isinstance(field, models.DecimalField)):
@@ -46,6 +49,7 @@ def _is_sourcable_field(field):
     elif not field.rel:
         return True
     return False
+
 
 # No trailing slashes on paths
 DEFAULT_SPHINX_PARAMS = {
@@ -59,6 +63,7 @@ DEFAULT_SPHINX_PARAMS = {
     'data_path': '/var/data',
 }
 
+
 def get_index_context(index):
     params = DEFAULT_SPHINX_PARAMS
     params.update({
@@ -67,6 +72,7 @@ def get_index_context(index):
     })
 
     return params
+
 
 def get_source_context(tables, index, valid_fields):
     params = DEFAULT_SPHINX_PARAMS
@@ -95,12 +101,14 @@ def get_source_context(tables, index, valid_fields):
 
 # Generate for single models
 
+
 def generate_config_for_model(model_class, index=None, sphinx_params={}):
     """
     Generates a sample configuration including an index and source for
     the given model which includes all attributes and date fields.
     """
     return generate_source_for_model(model_class, index, sphinx_params) + "\n\n" + generate_index_for_model(model_class, index, sphinx_params)
+
 
 def generate_index_for_model(model_class, index=None, sphinx_params={}):
     """Generates a source configmration for a model."""
@@ -116,12 +124,13 @@ def generate_index_for_model(model_class, index=None, sphinx_params={}):
     
     return t.render(c)
 
+
 def generate_source_for_model(model_class, index=None, sphinx_params={}):
     """Generates a source configmration for a model."""
     t = _get_template('source.conf')
 
     def _the_tuple(f):
-        return (f.__class__, f.column, getattr(f.rel, 'to', None), f.choices)
+        return f.__class__, f.column, getattr(f.rel, 'to', None), f.choices
 
     valid_fields = [_the_tuple(f) for f in model_class._meta.fields if _is_sourcable_field(f)]
     
@@ -143,12 +152,14 @@ def generate_source_for_model(model_class, index=None, sphinx_params={}):
     
 # Generate for multiple models (search UNIONs)
 
+
 def generate_config_for_models(model_classes, index=None, sphinx_params={}):
     """
     Generates a sample configuration including an index and source for
     the given model which includes all attributes and date fields.
     """
     return generate_source_for_models(model_classes, index, sphinx_params) + "\n\n" + generate_index_for_models(model_classes, index, sphinx_params)
+
 
 def generate_index_for_models(model_classes, index=None, sphinx_params={}):
     """Generates a source configmration for a model."""
@@ -164,6 +175,7 @@ def generate_index_for_models(model_classes, index=None, sphinx_params={}):
     
     return t.render(c)
 
+
 def generate_source_for_models(model_classes, index=None, sphinx_params={}):
     """Generates a source configmration for a model."""
     t = _get_template('source-multiple.conf')
@@ -171,7 +183,7 @@ def generate_source_for_models(model_classes, index=None, sphinx_params={}):
     # We need to loop through each model and find only the fields that exist *exactly* the
     # same across models.
     def _the_tuple(f):
-        return (f.__class__, f.column, getattr(f.rel, 'to', None), f.choices)
+        return f.__class__, f.column, getattr(f.rel, 'to', None), f.choices
     
     valid_fields = [_the_tuple(f) for f in model_classes[0]._meta.fields if _is_sourcable_field(f)]
     for model_class in model_classes[1:]:

@@ -1,23 +1,20 @@
 from __future__ import absolute_import
 from past.builtins import cmp
-from builtins import hex, oct, str, map, range, object
+from builtins import hex, oct, str, map, range
 import select
 import socket
 import time
 import struct
 import warnings
 import operator
-from djangosphinx.apis import current as sphinxapi
+from .apis import current as sphinxapi
 import logging
 import re
-import six
+from django.utils import six
 from functools import reduce
-try:
-    import decimal
-except ImportError:
-    from django.utils import _decimal as decimal # for Python 2.3
+import decimal
 
-from django.db.models.query import QuerySet, Q
+from django.db.models.query import Q
 from django.conf import settings
 
 __all__ = ('SearchError', 'ConnectionError', 'SphinxSearch', 'SphinxRelation', 'SphinxQuerySet')
@@ -26,12 +23,12 @@ from django.contrib.contenttypes.models import ContentType
 from datetime import datetime, date
 
 # server settings
-SPHINX_SERVER           = getattr(settings, 'SPHINX_SERVER', 'localhost')
-SPHINX_PORT             = int(getattr(settings, 'SPHINX_PORT', 3312))
+SPHINX_SERVER = getattr(settings, 'SPHINX_SERVER', 'localhost')
+SPHINX_PORT = int(getattr(settings, 'SPHINX_PORT', 3312))
 
 # These require search API 275 (Sphinx 0.9.8)
-SPHINX_RETRIES          = int(getattr(settings, 'SPHINX_RETRIES', 0))
-SPHINX_RETRIES_DELAY    = int(getattr(settings, 'SPHINX_RETRIES_DELAY', 5))
+SPHINX_RETRIES = int(getattr(settings, 'SPHINX_RETRIES', 0))
+SPHINX_RETRIES_DELAY = int(getattr(settings, 'SPHINX_RETRIES_DELAY', 5))
 
 MAX_INT = int(2**31-1)
 
@@ -45,8 +42,14 @@ EMPTY_RESULT_SET = dict(
 
 UNDEFINED = object()
 
-class SearchError(Exception): pass
-class ConnectionError(Exception): pass
+
+class SearchError(Exception):
+    pass
+
+
+class ConnectionError(Exception):
+    pass
+
 
 class SphinxProxy(object):
     """
@@ -187,53 +190,55 @@ class SphinxProxy(object):
     __enter__ = lambda x: x.__enter__()
     __exit__ = lambda x, *a, **kw: x.__exit__(*a, **kw)
 
+
 def to_sphinx(value):
-    "Convert a value into a sphinx query value"
+    """Convert a value into a sphinx query value"""
     if isinstance(value, date) or isinstance(value, datetime):
         return int(time.mktime(value.timetuple()))
     elif isinstance(value, decimal.Decimal) or isinstance(value, float):
         return float(value)
     return int(value)
 
+
 class SphinxQuerySet(object):
     available_kwargs = ('rankmode', 'mode', 'weights', 'maxmatches', 'passages', 'passages_opts')
     
     def __init__(self, model=None, using=None, **kwargs):
-        self._select_related        = False
-        self._select_related_args   = {}
+        self._select_related = False
+        self._select_related_args = {}
         self._select_related_fields = []
-        self._filters               = {}
-        self._excludes              = {}
-        self._extra                 = {}
-        self._query                 = ''
-        self.__metadata             = None
-        self._offset                = 0
-        self._limit                 = 20
+        self._filters = {}
+        self._excludes = {}
+        self._extra = {}
+        self._query = ''
+        self.__metadata = None
+        self._offset = 0
+        self._limit = 20
 
-        self._groupby               = None
-        self._sort                  = None
-        self._weights               = [1, 100]
+        self._groupby = None
+        self._sort = None
+        self._weights = [1, 100]
 
-        self._passages              = False
-        self._passages_opts         = {}
-        self._maxmatches            = 1000
-        self._result_cache          = None
-        self._mode                  = sphinxapi.SPH_MATCH_ALL
-        self._rankmode              = getattr(sphinxapi, 'SPH_RANK_PROXIMITY_BM25', None)
-        self.model                  = model
-        self._anchor                = {}
-        self.__metadata             = {}
+        self._passages = False
+        self._passages_opts = {}
+        self._maxmatches = 1000
+        self._result_cache = None
+        self._mode = sphinxapi.SPH_MATCH_ALL
+        self._rankmode = getattr(sphinxapi, 'SPH_RANK_PROXIMITY_BM25', None)
+        self.model = model
+        self._anchor = {}
+        self.__metadata = {}
         
-        self.using                  = using
+        self.using = using
         
         options = self._format_options(**kwargs)
         for key, value in six.iteritems(options):
             setattr(self, key, value)
 
         if model:
-            self._index             = kwargs.get('index', model._meta.db_table)
+            self._index = kwargs.get('index', model._meta.db_table)
         else:
-            self._index             = kwargs.get('index')
+            self._index = kwargs.get('index')
 
     def __repr__(self):
         if self._result_cache is not None:
@@ -284,7 +289,7 @@ class SphinxQuerySet(object):
         kwargs = dict([('_%s' % (key,), value) for key, value in six.iteritems(kwargs) if key in self.available_kwargs])
         return kwargs
 
-    def get_query_set(self, model):
+    def get_queryset(self, model):
         qs = model._default_manager
         if self.using:
             qs = qs.db_manager(self.using)
@@ -575,7 +580,7 @@ class SphinxQuerySet(object):
             
         if self.model:
             if results['matches']:
-                queryset = self.get_query_set(self.model)
+                queryset = self.get_queryset(self.model)
                 if self._select_related:
                     queryset = queryset.select_related(*self._select_related_fields, **self._select_related_args)
                 if self._extra:
@@ -631,9 +636,9 @@ class SphinxQuerySet(object):
                                 objcache[ct][r['id']] = r['id'] = val
                     
                         q = reduce(operator.or_, [reduce(operator.and_, [Q(**{p.name: r['attrs'][p.column]}) for p in pks]) for r in results['matches'] if r['attrs']['content_type'] == ct])
-                        queryset = self.get_query_set(model_class).filter(q)
+                        queryset = self.get_queryset(model_class).filter(q)
                     else:
-                        queryset = self.get_query_set(model_class).filter(pk__in=[r['id'] for r in results['matches'] if r['attrs']['content_type'] == ct])
+                        queryset = self.get_queryset(model_class).filter(pk__in=[r['id'] for r in results['matches'] if r['attrs']['content_type'] == ct])
 
                     for o in queryset:
                         objcache[ct][', '.join([six.text_type(getattr(o, p.name)) for p in pks])] = o
@@ -668,9 +673,11 @@ class SphinxQuerySet(object):
             c += 1
         return passages
 
+
 class EmptySphinxQuerySet(SphinxQuerySet):
     def _get_sphinx_results(self):
         return None
+
 
 class SphinxModelManager(object):
     def __init__(self, model, **kwargs):
@@ -678,29 +685,30 @@ class SphinxModelManager(object):
         self._index = kwargs.pop('index', model._meta.db_table)
         self._kwargs = kwargs
     
-    def _get_query_set(self):
+    def _get_queryset(self):
         return SphinxQuerySet(self.model, index=self._index, **self._kwargs)
     
     def get_index(self):
         return self._index
     
     def all(self):
-        return self._get_query_set()
+        return self._get_queryset()
     
     def none(self):
-        return self._get_query_set().none()
+        return self._get_queryset().none()
     
     def filter(self, **kwargs):
-        return self._get_query_set().filter(**kwargs)
+        return self._get_queryset().filter(**kwargs)
     
     def query(self, *args, **kwargs):
-        return self._get_query_set().query(*args, **kwargs)
+        return self._get_queryset().query(*args, **kwargs)
 
     def on_index(self, *args, **kwargs):
-        return self._get_query_set().on_index(*args, **kwargs)
+        return self._get_queryset().on_index(*args, **kwargs)
 
     def geoanchor(self, *args, **kwargs):
-        return self._get_query_set().geoanchor(*args, **kwargs)
+        return self._get_queryset().geoanchor(*args, **kwargs)
+
 
 class SphinxInstanceManager(object):
     """Collection of tools useful for objects which are in a Sphinx index."""
@@ -712,6 +720,7 @@ class SphinxInstanceManager(object):
     def update(self, **kwargs):
         assert sphinxapi.VER_COMMAND_SEARCH >= 0x113, "You must upgrade sphinxapi to version 0.98 to use UpdateAttributes."
         sphinxapi.UpdateAttributes(self._index, list(kwargs.keys()), dict(self.instance.pk, list(map(to_sphinx, list(kwargs.values())))))
+
 
 class SphinxSearch(object):
     def __init__(self, index=None, using=None, **kwargs):
@@ -730,7 +739,7 @@ class SphinxSearch(object):
             return SphinxInstanceManager(instance, self._index)
         return self._sphinx
     
-    def get_query_set(self):
+    def get_queryset(self):
         """Override this method to change the QuerySet used for config generation."""
         return self.model._default_manager.all()
     
@@ -745,10 +754,12 @@ class SphinxSearch(object):
             model.__sphinx_indexes__.append(self._index)
         setattr(model, name, self._sphinx)
 
+
 class SphinxRelationProxy(SphinxProxy):
     def count(self):
         return min(self._sphinx['attrs']['@count'], self._maxmatches)
-    
+
+
 class SphinxRelation(SphinxSearch):
     """
     Adds "related model" support to django-sphinx --
@@ -799,16 +810,17 @@ class SphinxRelation(SphinxSearch):
                     ids.append(value)
                 else:
                     ids.extend()
-            qs = self.get_query_set(self.model).filter(pk__in=set(ids))
+            qs = self.get_queryset(self.model).filter(pk__in=set(ids))
             if self._select_related:
                 qs = qs.select_related(*self._select_related_fields,
                                        **self._select_related_args)
             if self._extra:
                 qs = qs.extra(**self._extra)
             queryset = dict([(o.id, o) for o in qs])
-            results = [ SphinxRelationProxy(queryset[k['attrs']['@groupby']], k) \
-                        for k in results['matches'] \
-                        if k['attrs']['@groupby'] in queryset ]
+            results = [
+                SphinxRelationProxy(queryset[k['attrs']['@groupby']], k)
+                for k in results['matches'] if k['attrs']['@groupby'] in queryset]
+
         self.__metadata = {
             'total': results['total'],
             'total_found': results['total_found'],

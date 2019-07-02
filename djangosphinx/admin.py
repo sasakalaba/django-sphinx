@@ -1,7 +1,10 @@
 from __future__ import absolute_import
 from django.contrib.admin.views.main import *
 from django.contrib.admin import ModelAdmin
-from djangosphinx.models import SphinxQuerySet
+from django.core.paginator import Paginator
+from django.utils.encoding import smart_str
+from .models import SphinxQuerySet
+
 
 class SphinxModelAdmin(ModelAdmin):
     index = None
@@ -19,9 +22,10 @@ class SphinxModelAdmin(ModelAdmin):
     def get_changelist(self, request, **kwargs):
         return SphinxChangeList
 
+
 class SphinxChangeList(ChangeList):
-    def get_query_set(self):
-        qs = self.root_query_set
+    def get_queryset(self):
+        qs = self.root_queryset
         lookup_params = self.params.copy() # a dictionary of the query string
         for i in (ALL_VAR, ORDER_VAR, ORDER_TYPE_VAR, SEARCH_VAR, IS_POPUP_VAR):
             if i in lookup_params:

@@ -34,7 +34,8 @@ from __future__ import absolute_import
 import warnings
 import os.path
 
-__version__ = (2, 2, 4)
+__version__ = (2, 3, 0)
+
 
 def _get_git_revision(path):
     revision_file = os.path.join(path, 'refs', 'heads', 'master')
@@ -45,6 +46,7 @@ def _get_git_revision(path):
         return fh.read()
     finally:
         fh.close()
+
 
 def get_revision():
     """
@@ -58,7 +60,9 @@ def get_revision():
         return _get_git_revision(path)
     return None
 
+
 __build__ = get_revision()
+
 
 def lazy_object(location):
     def inner(*args, **kwargs):
@@ -70,6 +74,7 @@ def lazy_object(location):
             return func(*args, **kwargs)
         return func
     return inner
+
 
 SphinxSearch = lazy_object('djangosphinx.models.SphinxSearch')
 SphinxQuerySet = lazy_object('djangosphinx.models.SphinxQuerySet')

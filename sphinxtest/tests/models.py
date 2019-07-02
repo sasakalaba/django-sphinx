@@ -10,12 +10,12 @@ class Group(models.Model):
     name = models.CharField(max_length=32)
 
 class Document(models.Model):
-    group       = models.ForeignKey(Group)
-    date_added  = models.DateTimeField(default=datetime.datetime.now)
-    title       = models.CharField(max_length=32)
-    content     = models.TextField()
+    group = models.ForeignKey(Group)
+    date_added = models.DateTimeField(default=datetime.datetime.now)
+    title = models.CharField(max_length=32)
+    content = models.TextField()
     
-    search      = SphinxSearch(index="test")
+    search = SphinxSearch(index="test")
     
     class Meta(object):
         db_table = 'documents'

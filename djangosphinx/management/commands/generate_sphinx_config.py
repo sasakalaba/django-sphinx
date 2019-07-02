@@ -1,8 +1,6 @@
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, print_function, unicode_literals
 from django.core.management.base import AppCommand
-from django.db import models
 
-from djangosphinx.models import SphinxModelManager
 
 class Command(AppCommand):
     help = "Prints generic configuration for any models which use a standard SphinxSearch manager."
