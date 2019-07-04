@@ -470,7 +470,7 @@ class SphinxClient(object):
 		req.append(self._sortby)
 
 		if isinstance(query, str):
-			query = query.encode('utf-8')
+			query = query.decode("utf-8").encode("utf-8")
 		assert(isinstance(query, str))
 
 		req.append(pack('>L', len(query)))

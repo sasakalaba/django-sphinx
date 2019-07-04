@@ -13,9 +13,9 @@ __all__ = ('generate_config_for_model', 'generate_config_for_models')
 
 
 def _get_database_engine():
-    if settings.DATABASE_ENGINE == 'mysql':
-        return settings.DATABASE_ENGINE
-    elif settings.DATABASE_ENGINE.startswith('postgresql'):
+    if settings.DATABASES['default']['ENGINE'].endswith('mysql'):
+        return settings.DATABASES['default']['ENGINE']
+    elif settings.DATABASES['default']['ENGINE'].split(".")[-1].startswith('postgresql'):
         return 'pgsql'
     raise ValueError("Only MySQL and PostgreSQL engines are supported by Sphinx.")
 
@@ -54,11 +54,11 @@ def _is_sourcable_field(field):
 # No trailing slashes on paths
 DEFAULT_SPHINX_PARAMS = {
     'database_engine': _get_database_engine(),
-    'database_host': settings.DATABASE_HOST,
-    'database_port': settings.DATABASE_PORT,
-    'database_name': settings.DATABASE_NAME,
-    'database_user': settings.DATABASE_USER,
-    'database_password': settings.DATABASE_PASSWORD,
+    'database_host': settings.DATABASES['default']['HOST'],
+    'database_port': settings.DATABASES['default']['PORT'],
+    'database_name': settings.DATABASES['default']['NAME'],
+    'database_user': settings.DATABASES['default']['USER'],
+    'database_password': settings.DATABASES['default']['PASSWORD'],
     'log_file': '/var/log/sphinx/searchd.log',
     'data_path': '/var/data',
 }

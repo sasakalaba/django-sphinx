@@ -16,6 +16,7 @@ import decimal
 
 from django.db.models.query import Q
 from django.conf import settings
+from django.utils.encoding import force_str
 
 __all__ = ('SearchError', 'ConnectionError', 'SphinxSearch', 'SphinxRelation', 'SphinxQuerySet')
 
@@ -300,7 +301,7 @@ class SphinxQuerySet(object):
         return self._clone(**kwargs)
 
     def query(self, string):
-        return self._clone(_query=six.text_type(string).encode('utf-8'))
+        return self._clone(_query=force_str(string))
 
     def group_by(self, attribute, func, groupsort='@group desc'):
         return self._clone(_groupby=attribute, _groupfunc=func, _groupsort=groupsort)
