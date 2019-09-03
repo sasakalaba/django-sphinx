@@ -470,7 +470,7 @@ class SphinxClient(object):
 		req.append(self._sortby)
 
 		if isinstance(query, str):
-			query = query.decode("utf-8").encode("utf-8")
+			query = query.encode('utf-8').decode('utf-8')
 		assert(isinstance(query, str))
 
 		req.append(pack('>L', len(query)))
@@ -484,11 +484,11 @@ class SphinxClient(object):
 		req.append(pack('>L', 1))  # id64 range marker
 		req.append(pack('>Q', self._min_id))
 		req.append(pack('>Q', self._max_id))
-		
+
 		# filters
 		req.append(pack('>L', len(self._filters)))
 		for f in self._filters:
-			req.append(pack('>L', len(f['attr'])) + f['attr'])
+			req.append(pack('>L', len(f['attr'])) + f['attr'].encode('utf-8'))
 			filtertype = f['type']
 			req.append(pack('>L', filtertype))
 			if filtertype == SPH_FILTER_VALUES:
@@ -535,7 +535,7 @@ class SphinxClient(object):
 			req.append(pack('>L', len(field)) + field + pack('>L', weight))
 
 		# comment
-		req.append(pack('>L', len(comment)) + comment)
+		req.append(pack('>L', len(comment)) + comment.encode('utf-8'))
 
 		# attribute overrides
 		req.append(pack('>L', len(self._overrides)))
@@ -555,8 +555,13 @@ class SphinxClient(object):
 		req.append(pack('>L', len(self._select)))
 		req.append(self._select)
 
+		# convert all items to bytes
+		for i in range(0, len(req)):
+			if isinstance(req[i], str):
+				req[i] = req[i].encode()
+
 		# send query, get response
-		req = ''.join(req)
+		req = b''.join(req)
 
 		self._reqs.append(req)
 		return
@@ -645,7 +650,7 @@ class SphinxClient(object):
 			p += 4
 			id64 = unpack('>L', response[p:p+4])[0]
 			p += 4
-		
+
 			# read matches
 			result['matches'] = []
 			while count > 0 and p < max_:
@@ -694,7 +699,7 @@ class SphinxClient(object):
 				p += 8
 
 				result['words'].append({'word': word, 'docs': docs, 'hits': hits})
-		
+
 		self._reqs = []
 		return results
 
@@ -736,7 +741,7 @@ class SphinxClient(object):
 			flags |= 8
 		if opts.get('weight_order'):
 			flags |= 16
-		
+
 		# mode=0, flags
 		req = [pack('>2L', 0, flags)]
 
@@ -922,7 +927,7 @@ class SphinxClient(object):
 		if self._socket:
 			self._error = 'already connected'
 			return
-		
+
 		server = self._Connect()
 		if not server:
 			return
@@ -930,7 +935,7 @@ class SphinxClient(object):
 		# command, command version = 0, body length = 4, body = 1
 		request = pack('>hhII', SEARCHD_COMMAND_PERSIST, 0, 4, 1)
 		server.send(request)
-		
+
 		self._socket = server
 
 	def Close(self):
@@ -939,7 +944,7 @@ class SphinxClient(object):
 			return
 		self._socket.close()
 		self._socket = None
-	
+
 	def EscapeString(self, string):
 		return re.sub(r"([=\(\)|\-!@~\"&/\\\^\$\=])", r"\\\1", string)
 
